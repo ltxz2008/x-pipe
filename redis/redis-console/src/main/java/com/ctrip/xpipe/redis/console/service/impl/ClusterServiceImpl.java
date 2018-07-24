@@ -24,10 +24,8 @@ import com.ctrip.xpipe.redis.core.entity.*;
 import com.ctrip.xpipe.spring.AbstractSpringConfigContext;
 import com.ctrip.xpipe.utils.StringUtil;
 import com.ctrip.xpipe.utils.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.unidal.dal.jdbc.DalException;
@@ -442,7 +440,7 @@ public class ClusterServiceImpl extends AbstractConsoleService<ClusterTblDao> im
 		for(String dcName : dcToSentinels.keySet()) {
 			List<DcClusterShardTbl> dcClusterShards = dcClusterShardService.findAllByDcCluster(dcName, cluster);
 			List<SetinelTbl> sentinels = dcToSentinels.get(dcName);
-			if(dcClusterShards == null || sentinels == null) {
+			if(dcClusterShards == null || sentinels == null || sentinels.isEmpty()) {
 				throw new XpipeRuntimeException("DcClusterShard | Sentinels should not be null");
 			}
             long randomlySelectedSentinelId = randomlyChoseSentinels(sentinels);

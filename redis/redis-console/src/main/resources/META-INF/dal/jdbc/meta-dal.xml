@@ -27,6 +27,7 @@
 			</readset>
 			<readset name="BASIC">
 				<member name='id'/>
+				<member name="zone-id"/>
 				<member name='dc-name'/>
 				<member name='dc-description'/>
 			</readset>
@@ -151,6 +152,13 @@
 			<readset name="FULL_WITH_ORG">
 				<readset-ref name="FULL"/>
 				<readset-ref name="FULL" relation-name="organization-info"/>
+			</readset>
+			<readset name="CLUSTER_META_INFO">
+				<member name="id"/>
+				<member name="cluster-name"/>
+				<member name="status"/>
+				<member name="activedc-id"/>
+				<member name="cluster-org-id"/>
 			</readset>
 		</readsets>
 		
@@ -380,6 +388,10 @@
 			<readset name="MONITOR_NAME">
 				<member name="setinel-monitor-name"/>
 			</readset>
+			<readset name="NAME_AND_MONITOR_NAME">
+				<member name="shard-name"/>
+				<member name="setinel-monitor-name"/>
+			</readset>
 		</readsets>
 
 		<query-defs>
@@ -471,12 +483,14 @@
 		<relation name="redis-info" entity-name="redis-tbl" entity-alias="rt"/>
 
 		<readsets>
-			<readset name="FULL_WITH_DC_CLUSTER">
-				<readset-ref name="FULL"/>
-				<readset-ref name="FULL" relation-name="cluster-info"/>
-				<readset-ref name="FULL" relation-name="dc-cluster-info"/>
-				<readset-ref name="FULL" relation-name="redis-info"/>
-				<readset-ref name="FULL" relation-name="shard-info"/>
+			<readset name="SENTINEL_ID">
+				<member name="setinel-id"/>
+			</readset>
+			<readset name="DC_CLUSTER_SHARD_META_INFO">
+				<readset-ref name="SENTINEL_ID"/>
+				<readset-ref name="CLUSTER_META_INFO" relation-name="cluster-info"/>
+				<readset-ref name="REDIS_META_INFO" relation-name="redis-info"/>
+				<readset-ref name="NAME_AND_MONITOR_NAME" relation-name="shard-info"/>
 			</readset>
 		</readsets>
 
@@ -618,6 +632,16 @@
 			<readset name="IP-AND-PORT">
 				<member name='redis-ip'/>
 				<member name="redis-port"/>
+			</readset>
+			<readset name="REDIS_META_INFO">
+				<member name="redis-ip"/>
+				<member name="redis-port"/>
+				<member name="run-id"/>
+				<member name="redis-role"/>
+				<member name="keeper-active"/>
+				<member name="master"/>
+				<member name="redis-master"/>
+				<member name="keepercontainer-id"/>
 			</readset>
 		</readsets>
 
@@ -1354,6 +1378,90 @@
         			]]>
 				</statement>
 			</query>
+		</query-defs>
+	</entity>
+	<entity name="event-tbl" table="event_tbl" alias="et">
+
+		<var name="target-event-type" value-type="String"/>
+		<var name="target-date" value-type="Date"/>
+
+		<query-defs>
+			<query name="find-event-by-type" type="SELECT" multiple="true">
+				<param name="target-event-type"/>
+				<statement>
+					<![CDATA[
+					SELECT <FIELDS/>
+					FROM <TABLE/>
+					WHERE <FIELD name="event-type"/> = ${target-event-type}
+					]]>
+				</statement>
+			</query>
+			<query name="find-event-by-type-after-date" type="SELECT" multiple="true">
+				<param name="target-event-type"/>
+				<param name="target-date"/>
+				<statement>
+					<![CDATA[
+					SELECT <FIELDS/>
+					FROM <TABLE/>
+					WHERE <FIELD name="event-type"/> = ${target-event-type}
+					AND <FIELD name="data-change-last-time"/> >= ${target-date}
+					]]>
+				</statement>
+			</query>
+
+		</query-defs>
+	</entity>
+	<entity name="proxy-tbl" table="proxy_tbl" alias="pt">
+
+		<readsets>
+			<readset name="id-dc-uri">
+				<member name='id'/>
+				<member name='dc_id'/>
+				<member name="uri"/>
+				<member name="active"/>
+			</readset>
+		</readsets>
+		<query-defs>
+			<query name="find-all-active" type="SELECT" multiple="true">
+				<statement>
+					<![CDATA[
+					SELECT <FIELDS/>
+					FROM <TABLE/>
+					WHERE <FIELD name='deleted'/> = 0
+					AND <FIELD name='active'/> = 1
+					]]>
+				</statement>
+			</query>
+
+		</query-defs>
+	</entity>
+	<entity name="route-tbl" table="route_tbl" alias="routetbl">
+
+		<readsets>
+			<readset name="main">
+				<member name='id'/>
+				<member name="tag"/>
+				<member name="active"/>
+				<member name='route_org_id'/>
+				<member name="src_dc_id"/>
+				<member name="dst_dc_id"/>
+				<member name="src_proxy_ids"/>
+				<member name="dst_proxy_ids"/>
+				<member name="optional_proxy_ids"/>
+			</readset>
+		</readsets>
+		<query-defs>
+			<query name="find-all-active" type="SELECT" multiple="true">
+				<statement>
+					<![CDATA[
+					SELECT <FIELDS/>
+					FROM <TABLE/>
+					WHERE <FIELD name='deleted'/> = 0
+					AND <FIELD name='active'/> = 1
+					]]>
+				</statement>
+			</query>
+
 		</query-defs>
 	</entity>
 </entities>
